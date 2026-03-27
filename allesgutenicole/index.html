@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glaggle Birthday Surprise</title>
+    <style>
+        :root {
+            --bg-color: #0b2d41;
+            --nav-bg: #1a4b66;
+            --card-border: #2E94D1;
+            --accent: #70C4F7;
+            --text-color: #ffffff;
+            --flower-pink: #ff6b6b;
+            --flower-yellow: #feca57;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Arial Rounded MT Bold', 'Helvetica', sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 65px;
+            background-color: var(--nav-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .container {
+            background: var(--nav-bg);
+            padding: 40px;
+            border-radius: 30px;
+            border: 4px solid var(--card-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 400px;
+            width: 90%;
+            z-index: 10;
+        }
+
+        h1 { font-size: 2.5rem; margin-bottom: 10px; color: var(--accent); }
+        p { opacity: 0.9; margin-bottom: 30px; }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 0px #2E94D1;
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0px #2E94D1;
+        }
+
+        .flower {
+            position: absolute;
+            pointer-events: none;
+            font-size: 30px;
+            user-select: none;
+            z-index: 5;
+            animation: fall 3s linear forwards;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        #message-display {
+            display: none;
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff9ff3;
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div style="color: var(--accent); font-weight: bold; font-size: 20px;">🐙 Glaggle Celebration</div>
+    </div>
+
+    <div class="container">
+        <h1>Hey! 🎉</h1>
+        <p>Ein kleiner Klick für eine große Überraschung...</p>
+        
+        <button class="btn" onclick="celebrate()">Klick mich!</button>
+        
+        <div id="message-display">Alles Gute zum Geburtstag! 🎂✨</div>
+    </div>
+
+    <script>
+        function celebrate() {
+            const message = document.getElementById('message-display');
+            message.style.display = 'block';
+
+            const flowers = ['🌸', '🌼', '🌺', '🌻', '🌷', '✨', '❤️'];
+            
+            // Erzeuge 30 Blumen-Partikel
+            for (let i = 0; i < 30; i++) {
+                createFlower(flowers);
+            }
+        }
+
+        function createFlower(flowerArray) {
+            const f = document.createElement('div');
+            f.className = 'flower';
+            f.innerText = flowerArray[Math.floor(Math.random() * flowerArray.length)];
+            
+            // Zufällige Position am oberen Bildschirmrand
+            f.style.left = Math.random() * 100 + 'vw';
+            f.style.top = '-50px';
+            
+            // Zufällige Größe und Fallgeschwindigkeit
+            const size = Math.random() * 20 + 20;
+            f.style.fontSize = size + 'px';
+            f.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            
+            document.body.appendChild(f);
+
+            // Entferne das Element nach der Animation
+            setTimeout(() => {
+                f.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
