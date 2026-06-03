@@ -2,12 +2,30 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct
+from qdrant_client.models import PointStruct, VectorParams, Distance
 
 QDRANT_URL = os.environ.get("QDRANT_URL")
 QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY")
 
 client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, check_compatibility=False)
+
+COLLECTION_NAME = "web_pages"
+
+# NEU: Automatische Erstellung der Collection, falls sie fehlt
+try:
+    if not client.collection_exists(collection_name=COLLECTION_NAME):
+        print(f"Collection '{COLLECTION_NAME}' existiert nicht. Wird erstellt...")
+        client.create_collection(
+            collection_name=COLLECTION_NAME,
+            vectors_config={
+                # Wir nutzen das standardmäßige, integrierte Text-Modell von Qdrant
+                "text": VectorParams(size=384, distance=Distance.COSINE)
+            }
+        )
+        print(f"Collection '{COLLECTION_NAME}' erfolgreich erstellt!")
+except Exception as e:
+    print(f"Hinweis beim Überprüfen der Collection: {e}")
+
 
 def crawl_and_index(url):
     try:
@@ -19,14 +37,11 @@ def crawl_and_index(url):
             
             point_id = abs(hash(url)) % 10000000
             
-            # WICHTIG: Wir nutzen client.upsert und übergeben den Text im 'vectors'-Feld
-            # Damit weiß Qdrant Cloud sofort, dass sie den Vektor berechnen soll
             client.upsert(
-                collection_name="web_pages",
+                collection_name=COLLECTION_NAME,
                 points=[
                     PointStruct(
                         id=point_id,
-                        # Wir übergeben den Text direkt an das Cloud-Modell
                         vector={"text": text_content}, 
                         payload={
                             "url": url,
