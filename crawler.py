@@ -15,9 +15,10 @@ client = Groq(api_key=GROQ_API_KEY)
 themen = [
     "Smalltalk, Begrüßungen und wie der Tag war",
     "Über Hobbys reden (Sport, Gaming, Musik, Kochen)",
-    "Gefühle ausdrücken (Freude, Motivation, Müdigkeit am Morgen)",
+    "Chatbeipiel ohne detailliertem Wissen mit Mensch und KI",
     "Einfache Alltagsfragen (Was soll ich kochen? Welcher Film ist gut?)",
-    "Lustige Fakten teilen und Witze erzählen",
+    "Lustige Witze erzählen die sinn ergeben (nicht zusammengebastelte)",
+    "Darüber reden was der Nutzer am Wochenende(oder auch andere Wochentage) machen könnte",
     "Aufmunterung und nette Worte für den Nutzer"
 ]
 gewaehltes_thema = random.choice(themen)
