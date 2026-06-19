@@ -30,7 +30,7 @@ Generiere ein lockeres, natürliches Chat-Protokoll auf Deutsch zum Thema: "{gew
 
 WICHTIGE REGELN:
 1. Die Fragen und Antworten müssen allgemein und alltagstauglich sein, damit ein neues Modell das freie Chatten lernt.
-2. Nutze SEHR VIELE Emojis (🌟, 🚀, 😊, 🎉, 🤔 etc.) in fast jedem Satz, um den Chat lebendig zu machen!
+2. Nutze SEHR VIELE Emojis (🌟, 🚀, 😊, 🎉, 🤔 etc.) in fast jedem Satz, um den Chat lebendig zu machen! Aber setze sie Sinnvoll ein.
 3. Du MUSST die Antwort als valides JSON-Array ausgeben. Nutze exakt diese Struktur:
 
 [
