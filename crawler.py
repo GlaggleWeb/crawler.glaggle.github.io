@@ -1,64 +1,76 @@
 import os
-import requests
-from bs4 import BeautifulSoup
-from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct, VectorParams, Distance
+import random
+import json
+from groq import Groq
+from datasets import load_dataset, Dataset
 
-QDRANT_URL = os.environ.get("QDRANT_URL")
-QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY")
+# API-Keys aus den GitHub Secrets laden
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+HF_TOKEN = os.getenv("HF_TOKEN")
+DATASET_REPO = "DEIN_HF_NAME/glenerationwissen" # 🔴 HIER DEINEN HF-NAMEN EINTRAGEN
 
-client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, check_compatibility=False)
+client = Groq(api_key=GROQ_API_KEY)
 
-COLLECTION_NAME = "web_pages"
+# Deine Themenliste
+themen = [
+    "Quantenphysik verständlich erklärt", "Die Geschichte der künstlichen Intelligenz",
+    "Wie funktioniert eine Blockchain?", "Spannende Fakten über das Universum",
+    "Die wichtigsten Programmierkonzepte in Python", "Wie das menschliche Gehirn lernt"
+]
+gewaehltes_thema = random.choice(themen)
 
-# NEU: Automatische Erstellung der Collection, falls sie fehlt
-try:
-    if not client.collection_exists(collection_name=COLLECTION_NAME):
-        print(f"Collection '{COLLECTION_NAME}' existiert nicht. Wird erstellt...")
-        client.create_collection(
-            collection_name=COLLECTION_NAME,
-            vectors_config={
-                # Wir nutzen das standardmäßige, integrierte Text-Modell von Qdrant
-                "text": VectorParams(size=384, distance=Distance.COSINE)
-            }
-        )
-        print(f"Collection '{COLLECTION_NAME}' erfolgreich erstellt!")
-except Exception as e:
-    print(f"Hinweis beim Überprüfen der Collection: {e}")
+# WICHTIG: Wir zwingen das Modell, uns reines JSON im richtigen Format zu liefern
+prompt = f"""
+Generiere ein hochqualitatives Chat-Protokoll auf Deutsch zum Thema: "{gewaehltes_thema}".
+Du MUSST die Antwort als valides JSON-Array ausgeben. Nutze exakt diese Struktur:
 
-
-def crawl_and_index(url):
-    try:
-        response = requests.get(url, timeout=10)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            title = soup.find('title').text if soup.find('title') else url
-            text_content = soup.get_text(separator=' ', strip=True)[:3000]
-            
-            point_id = abs(hash(url)) % 10000000
-            
-            client.upsert(
-                collection_name=COLLECTION_NAME,
-                points=[
-                    PointStruct(
-                        id=point_id,
-                        vector={"text": text_content}, 
-                        payload={
-                            "url": url,
-                            "title": title,
-                            "text": text_content
-                        }
-                    )
-                ]
-            )
-            print(f"Erfolgreich indexiert: {title}")
-    except Exception as e:
-        print(f"Fehler beim Crawlen von {url}: {e}")
-
-urls_to_crawl = [
-    "https://de.wikipedia.org/wiki/Affen",
-    "https://www.zoo.ch"
+[
+  {{"role": "user", "content": "Hier steht die Frage des Nutzers"}},
+  {{'role': 'assistant', 'content': 'Hier steht deine ausführliche Antwort'}}
 ]
 
-for url in urls_to_crawl:
-    crawl_and_index(url)
+Gib NUR das JSON-Array aus. Keine Einleitung, keine Formatierungscodes (wie ```json), kein Text davor oder danach.
+"""
+
+print(f"Lasse gpt-oss-20b Daten generieren für: {gewaehltes_thema}...")
+
+completion = client.chat.completions.create(
+    model="openai/gpt-oss-20b",
+    messages=[
+        # Hier nutzen wir die SYSTEM-Rolle, um der KI ihre Identität zu geben!
+        {"role": "system", "content": "Du bist ein präziser Daten-Generator, der ausschließlich sauberes JSON ausgibt."},
+        {"role": "user", "content": prompt}
+    ],
+    temperature=0.7
+)
+
+antwort_text = completion.choices[0].message.content.strip()
+
+try:
+    # Überprüfen, ob das Modell sauberes JSON geliefert hat
+    neue_konversation = json.loads(antwort_text)
+    
+    # Wir fügen ganz vorne eine SYSTEM-Nachricht für dein Modell hinzu
+    system_nachricht = {"role": "system", "content": f"Du bist Gleneration, eine schlaue KI. Du antwortest hilfreich auf Fragen zum Thema {gewaehltes_thema}."}
+    komplette_nachrichten = [system_nachricht] + neue_konversation
+
+    print("Lade bestehende Daten von Hugging Face...")
+    try:
+        dataset = load_dataset(DATASET_REPO, split="train", token=HF_TOKEN)
+        bestehende_liste = dataset["messages"]
+    except:
+        bestehende_liste = []
+
+    # Die neue Konversation der Liste hinzufügen
+    bestehende_liste.append(komplette_nachrichten)
+
+    # Dataset aktualisieren und hochladen
+    # Jede Zeile in der Spalte "messages" enthält nun die komplette Liste (System -> User -> Assistant)
+    neu_dataset = Dataset.from_dict({"messages": bestehende_liste})
+    neu_dataset.push_to_hub(DATASET_REPO, token=HF_TOKEN)
+    
+    print("Erfolgreich im professionellen 'messages'-Format auf Hugging Face gespeichert!")
+
+except Exception as e:
+    print(f"Fehler beim Verarbeiten des JSON: {e}")
+    print(f"Rohtext der KI war: {antwort_text}")
