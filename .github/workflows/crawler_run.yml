@@ -2,8 +2,8 @@ name: Gleneration Wissen Crawler
 
 on:
   schedule:
-    # Läuft jeden Tag um Mitternacht (00:00 Uhr) völlig kostenlos
-    - cron: '0 0 * * *'
+    # Läuft exakt 5-mal am Tag (um 00:00, 05:00, 10:00, 15:00 und 20:00 Uhr UTC)
+    - cron: '0 0,5,10,15,20 * * *'
   workflow_dispatch: # Erlaubt es dir, den Crawler auch manuell per Klick zu starten
 
 jobs:
