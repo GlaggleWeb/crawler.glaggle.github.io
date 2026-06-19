@@ -7,7 +7,7 @@ from datasets import load_dataset, Dataset
 # API-Keys aus den GitHub Secrets laden
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 HF_TOKEN = os.getenv("HF_TOKEN")
-DATASET_REPO = "DEIN_HF_NAME/glenerationwissen" # 🔴 HIER DEINEN HF-NAMEN EINTRAGEN
+DATASET_REPO = "GlaggleWeb/glenerationwissen" # 🔴 HIER DEINEN HF-NAMEN EINTRAGEN
 
 client = Groq(api_key=GROQ_API_KEY)
 
