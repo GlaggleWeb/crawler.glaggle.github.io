@@ -36,47 +36,18 @@ DATEI_NAME = "wissen.json"
 # ==========================
 
 themen = [
-    "Smalltalk und Begrüßungen",
-    "Hobbys",
-    "Kochen",
-    "Gaming",
-    "Filme",
-    "Musik",
-    "Witze",
-    "Wochenende",
-    "Freundliche Gespräche",
-    "Motivation"
+    "Smalltalk, Begrüßungen und wie der Tag war",
+    "Über Hobbys reden (Sport, Gaming, Musik, Kochen)",
+    "Einfache Alltagsfragen (Was soll ich kochen? Welcher Film ist gut?)",
+    "Lustige Witze erzählen",
+    "Darüber reden was der Nutzer am Wochenende machen könnte",
+    "Aufmunterung und nette Worte für den Nutzer"
 ]
 
 thema = random.choice(themen)
 
 prompt = f"""
-Du bist ein Daten-Generator.
-
-Erstelle eine natürliche deutsche Unterhaltung zum Thema:
-
-{thema}
-
-Regeln:
-
-- Nur Deutsch
-- Locker und freundlich
-- Viele Emojis
-- Zeitlos
-- Nur JSON ausgeben
-
-Format:
-
-[
-  {{
-    "role": "user",
-    "content": "..."
-  }},
-  {{
-    "role": "assistant",
-    "content": "..."
-  }}
-]
+Du bist ein Daten-Generator für ein neues KI-Modell. Generiere ein lockeres, natürliches Chat-Protokoll auf Deutsch zum Thema: "{gewaehltes_thema}". WICHTIGE REGELN: 1. Die Fragen und Antworten müssen ALLGEMEIN und ZEITLOS sein (keine aktuellen Events, Serien, Kino) 2. Nutze SEHR VIELE Emojis (😊, 🎉, 💡, 🤔, etc.) sinnvoll in fast jedem Satz 3. Der Chat soll natürlich und locker wirken, wie echte Menschen schreiben 4. Gib NUR ein valides JSON-Array aus, KEINE zusätzlichen Erklärungen: [ {{"role": "user", "content": "Hier steht eine alltägliche Frage des Nutzers"}}, {{"role": "assistant", "content": "Hier steht die passende Antwort mit Emojis"}} ]
 """
 
 print(f"Generiere Daten für Thema: {thema}")
