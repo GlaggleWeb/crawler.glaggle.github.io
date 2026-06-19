@@ -1,0 +1,29 @@
+name: Gleneration Wissen Crawler
+
+on:
+  schedule:
+    # Läuft jeden Tag um Mitternacht (00:00 Uhr) völlig kostenlos
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Erlaubt es dir, den Crawler auch manuell per Klick zu starten
+
+jobs:
+  run-crawler:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Code auschecken
+      uses: actions/checkout@v4
+
+    - name: Python einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Bibliotheken installieren
+      run: |
+        pip install groq datasets huggingface_hub
+
+    - name: Crawler ausführen
+      env:
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: python crawler.py
