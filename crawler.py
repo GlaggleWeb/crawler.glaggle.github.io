@@ -29,6 +29,7 @@ Du bist ein Daten-Generator für ein neues KI-Modell, das lernen soll, wie ein M
 Generiere ein lockeres, natürliches Chat-Protokoll auf Deutsch zum Thema: "{gewaehltes_thema}".
 
 WICHTIGE REGELN:
+0 Mache keine chatbeispiele über aktuelle Sachen wie zb was gerade im Kino läüft oder welche Xerie man scheuen könnte.
 1. Die Fragen und Antworten müssen allgemein und alltagstauglich sein, damit ein neues Modell das freie Chatten lernt.
 2. Nutze SEHR VIELE Emojis (🌟, 🚀, 😊, 🎉, 🤔 etc.) in fast jedem Satz, um den Chat lebendig zu machen! Aber setze sie Sinnvoll ein.
 3. Du MUSST die Antwort als valides JSON-Array ausgeben. Nutze exakt diese Struktur:
