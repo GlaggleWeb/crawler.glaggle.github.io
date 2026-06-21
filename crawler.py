@@ -42,7 +42,7 @@ DATEI_NAME = "wissen.json"
 themen = [
     "Smalltalk, Begrüßungen und wie der Tag war",
     "Über Hobbys reden (Sport, Gaming, Musik, Kochen)",
-    "Einfache Alltagsfragen (Was soll ich kochen? Welcher Film ist gut?)",
+    "Einfache Alltagsfragen (Was soll ich kochen? Was könnte ich machen?)",
     "Lustige Witze erzählen",
     "Darüber reden was der Nutzer am Wochenende machen könnte",
     "Aufmunterung und nette Worte für den Nutzer"
