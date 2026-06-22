@@ -46,36 +46,45 @@ themen = [
 
 thema = random.choice(themen)
 
-# WICHTIG: Die Anweisung wurde verschärft, um Witze und Erfindungen zu verbieten
+# WICHTIG: Prompt angepasst -> User nutzt KEINE Emojis, Assistant nutzt SEHR VIELE Emojis
 prompt = f"""
-Du bist ein Daten-Generator für ein neues KI-Modell. Generiere ein lockeres, natürliches Chat-Protokoll auf Deutsch zum Thema: "{thema}".
+Du bist ein Daten-Generator für ein neues KI-Modell. Generiere exakt 10 separate, unterschiedliche Chat-Protokolle auf Deutsch zum Thema: "{thema}".
 
-WICHTIGE REGELN FÜR DIE GENERIERUNG:
-1. Absolut KEINE Witze, KEINE Rätsel und KEINE fiktiven Geschichten.
-2. Nenne KEINE spezifischen, erfundenen Eigennamen (keine ausgedachten Orte wie 'Wasserfall-Weg', keine Filmtitel, keine fiktiven Buchtitel). Bleibe völlig allgemein (z.B. 'ein Spaziergang im Wald' oder 'ein Buch lesen').
-3. Die Fragen und Antworten müssen ALLGEMEIN, ALLTÄGLICH und ZEITLOS sein.
-4. Nutze VIELE Emojis (😊, 🎉, 💡, 🤔, etc.) sinnvoll in fast jedem Satz, passend zum lockeren Ton.
-5. Der Chat soll natürlich und ungezwungen wirken, wie eine normale Nachricht von Freunden (Benutze 'Du').
-6. Gib NUR ein valides JSON-Array aus, KEINE zusätzlichen Erklärungen drumherum:
+WICHTIGE REGELN FÜR REALISTISCHE NUTZER-EINGABEN:
+1. Der NUTZER ('user') schreibt extrem kurz, unperfekt und faul – genau wie echte Menschen im Chat! Er benutzt Kleinschreibung, Abkürzungen (z.B. 'idk', 'kp', 'vllt', 'safe', 'nd'), umgangssprachliche Wörter ('labern', 'zocken', 'voll kein bock') und manchmal kleine Tippfehler. Keine langen, verschachtelten Sätze beim Nutzer!
+2. Der NUTZER ('user') benutzt absolut KEINE Emojis. Seine Nachrichten enthalten nur Text!
+3. Der ASSISTANT ('assistant') antwortet ebenfalls locker, freundlich und im 'Du'-Stil, bleibt aber verständlich und kurz (maximal 2-3 Sätze pro Antwort).
+4. Der ASSISTANT ('assistant') nutzt VIELE Emojis (😊, 🤔, 🤷‍♂️, 😂) sinnvoll in fast jedem Satz, passend zum lockeren Ton.
+
+AUSGABEFORMAT:
+Gib NUR ein valides JSON-Array aus, das exakt 10 separate Listen enthält. KEINE zusätzlichen Erklärungen drumherum:
 [
-  {{"role": "user", "content": "Nutzer-Nachricht"}},
-  {{"role": "assistant", "content": "KI-Antwort"}}
+  [
+    {{"role": "user", "content": "hi wie gehts voll langweilig gerade"}},
+    {{"role": "assistant", "content": "Hey! 😊 Oh nein, Langeweile ist fies. Bock auf ne Runde zocken? 🎮"}}
+  ],
+  [
+    {{"role": "user", "content": "morgen voll müde kp warum"}},
+    {{"role": "assistant", "content": "Guten Morgen! ☕ Oh je, das kenne ich. Schnapp dir erst mal einen Kaffee! 😊"}}
+  ]
 ]
 """
 
-print(f"Generiere Daten für Thema: {thema}")
+print(f"Generiere 10 Daten-Batches für Thema: {thema}")
 
 # ==========================
-# Groq Anfrage
+# Groq Anfrage (Optimiert für gpt-oss-20b Batching)
 # ==========================
 
 completion = client.chat.completions.create(
     model="openai/gpt-oss-20b",
-    temperature=0.7,  # Temperatur leicht gesenkt für weniger "kreativen Quatsch"
+    temperature=0.65,  # Etwas niedriger, damit das Modell strikt beim JSON-Format bleibt
+    max_tokens=4096,   # Erhöht, damit alle 10 Verläufe ohne Abschneiden Platz finden
+    response_format={"type": "json_object"},  # Erzwingt die korrekte JSON-Ausgabe des Modells
     messages=[
         {
             "role": "system",
-            "content": "Du bist ein präziser JSON-Generator. Du antwortest ausschließlich in validem JSON ohne Markdown-Block (keine ```json ... ```)."
+            "content": "Du bist ein präziser Batch-Daten-Generator. Du antwortest ausschließlich mit einem verschachtelten JSON-Array, das exakt 10 separate Chat-Listen enthält."
         },
         {
             "role": "user",
@@ -96,11 +105,18 @@ antwort = antwort.strip()
 print("Antwort erhalten.")
 
 # ==========================
-# JSON prüfen
+# JSON prüfen und extrahieren
 # ==========================
 
 try:
-    neue_daten = json.loads(antwort)
+    neue_daten_batch = json.loads(antwort)
+    
+    # Falls das Modell das Array fälschlicherweise in ein Objekt verpackt hat
+    if isinstance(neue_daten_batch, dict):
+        for key in neue_daten_batch.keys():
+            if isinstance(neue_daten_batch[key], list):
+                neue_daten_batch = neue_daten_batch[key]
+                break
 except Exception as e:
     print("Fehler beim Parsen des JSON von der KI. Inhalt war:")
     print(antwort)
@@ -111,7 +127,12 @@ system_prompt = {
     "content": "Du bist Gleneration, eine freundliche KI. ✨"
 }
 
-konversation = [system_prompt] + neue_daten
+# Verarbeitet alle 10 Verläufe und fügt jeweils den System-Prompt vorne an
+neue_konversationen = []
+for verlauf in neue_daten_batch:
+    if isinstance(verlauf, list):
+        konversation = [system_prompt] + verlauf
+        neue_konversationen.append(konversation)
 
 # ==========================
 # Vorhandene Datei laden
@@ -136,10 +157,10 @@ except Exception as e:
     print(e)
 
 # ==========================
-# Neue Daten anhängen
+# Neue Daten anhängen (Nutzt .extend() für Listen)
 # ==========================
 
-gesamtes_wissen.append(konversation)
+gesamtes_wissen.extend(neue_konversationen)
 
 print(f"Neuer Gesamtbestand: {len(gesamtes_wissen)}")
 
@@ -174,4 +195,4 @@ api.upload_file(
     repo_type="dataset"
 )
 
-print("wissen.json erfolgreich aktualisiert!")
+print("wissen.json erfolgreich mit 10 Verläufen aktualisiert!")
