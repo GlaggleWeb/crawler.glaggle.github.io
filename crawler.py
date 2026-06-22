@@ -70,7 +70,7 @@ Du MUSST mit einem validen JSON-Objekt antworten, das den Key "chats" enthält. 
       {{"role": "assistant", "content": "Guten Morgen! ☕ Oh je, das kenne ich. Schnapp dir erst mal einen Kaffee! 😊"}}
     ]
   ]
-}}
+}} Das ist nur ein Beispiel die Längen der Chats sollen jeweils 10 solche einträge erhalten(nicht nur 2 wie im Bspl.)
 """
 
 print(f"Generiere 10 Daten-Batches für Thema: {thema}")
