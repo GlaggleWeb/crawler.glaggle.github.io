@@ -32,27 +32,35 @@ REPO_ID = "GlaggleWeb/glenerationwissen"
 DATEI_NAME = "wissen.json"
 
 # ==========================
-# Themen
-# ==========================
-
-# ==========================
-# Themen
+# Themen (Überarbeitet: Reine Grundunterhaltungen)
 # ==========================
 
 themen = [
-    "Smalltalk, Begrüßungen und wie der Tag war",
-    "Über Hobbys reden (Sport, Gaming, Musik, Kochen)",
-    "Einfache Alltagsfragen (Was soll ich kochen? Was könnte ich machen?)",
-    "Lustige Witze erzählen",
-    "Darüber reden was der Nutzer am Wochenende machen könnte",
-    "Aufmunterung und nette Worte für den Nutzer"
+    "Klassischer Smalltalk (Wie geht es dir, wie war dein Tag, was machst du gerade?)",
+    "Über den Tag philosophieren und alltägliche Gefühle austauschen (Müdigkeit, Motivation, gute Laune)",
+    "Lockerer Austausch über universelle Hobbys (Musik hören, Kochen als Beschäftigung, Gaming, Sport allgemein)",
+    "Das Konzept von Entspannung und Plänen fürs Wochenende (ohne konkrete Orte zu nennen)",
+    "Gegenseitige Begrüßungen, Abschiede und freundliche Floskeln im Alltag",
+    "Gegenseitige Aufmunterung bei einem stressigen Tag (allgemeines Mitgefühl und nette Worte)"
 ]
 
 thema = random.choice(themen)
 
-# HIER GEÄNDERT: {gewaehltes_thema} zu {thema}
+# WICHTIG: Die Anweisung wurde verschärft, um Witze und Erfindungen zu verbieten
 prompt = f"""
-Du bist ein Daten-Generator für ein neues KI-Modell. Generiere ein lockeres, natürliches Chat-Protokoll auf Deutsch zum Thema: "{thema}". WICHTIGE REGELN: 1. Die Fragen und Antworten müssen ALLGEMEIN und ZEITLOS sein (keine aktuellen Events, Serien, Kino) 2. Nutze SEHR VIELE Emojis (😊, 🎉, 💡, 🤔, etc.) sinnvoll in fast jedem Satz 3. Der Chat soll natürlich und locker wirken, wie echte Menschen schreiben 4. Gib NUR ein valides JSON-Array aus, KEINE zusätzlichen Erklärungen: [ {{"role": "user", "content": "Hier steht eine alltägliche Frage des Nutzers"}}, {{"role": "assistant", "content": "Hier steht die passende Antwort mit Emojis"}} ]
+Du bist ein Daten-Generator für ein neues KI-Modell. Generiere ein lockeres, natürliches Chat-Protokoll auf Deutsch zum Thema: "{thema}".
+
+WICHTIGE REGELN FÜR DIE GENERIERUNG:
+1. Absolut KEINE Witze, KEINE Rätsel und KEINE fiktiven Geschichten.
+2. Nenne KEINE spezifischen, erfundenen Eigennamen (keine ausgedachten Orte wie 'Wasserfall-Weg', keine Filmtitel, keine fiktiven Buchtitel). Bleibe völlig allgemein (z.B. 'ein Spaziergang im Wald' oder 'ein Buch lesen').
+3. Die Fragen und Antworten müssen ALLGEMEIN, ALLTÄGLICH und ZEITLOS sein.
+4. Nutze VIELE Emojis (😊, 🎉, 💡, 🤔, etc.) sinnvoll in fast jedem Satz, passend zum lockeren Ton.
+5. Der Chat soll natürlich und ungezwungen wirken, wie eine normale Nachricht von Freunden (Benutze 'Du').
+6. Gib NUR ein valides JSON-Array aus, KEINE zusätzlichen Erklärungen drumherum:
+[
+  {{"role": "user", "content": "Nutzer-Nachricht"}},
+  {{"role": "assistant", "content": "KI-Antwort"}}
+]
 """
 
 print(f"Generiere Daten für Thema: {thema}")
@@ -63,11 +71,11 @@ print(f"Generiere Daten für Thema: {thema}")
 
 completion = client.chat.completions.create(
     model="llama-3.3-70b-versatile",
-    temperature=0.85,
+    temperature=0.7,  # Temperatur leicht gesenkt für weniger "kreativen Quatsch"
     messages=[
         {
             "role": "system",
-            "content": "Gib ausschließlich valides JSON aus."
+            "content": "Du bist ein präziser JSON-Generator. Du antwortest ausschließlich in validem JSON ohne Markdown-Block (keine ```json ... ```)."
         },
         {
             "role": "user",
@@ -78,13 +86,25 @@ completion = client.chat.completions.create(
 
 antwort = completion.choices[0].message.content.strip()
 
+# Falls die KI doch Markdown-Codeblöcke mitsendet, putzen wir sie hier weg
+if antwort.startswith("```"):
+    antwort = antwort.split("\n", 1)[1]
+if antwort.endswith("```"):
+    antwort = antwort.rsplit("\n", 1)[0]
+
+antwort = antwort.strip()
 print("Antwort erhalten.")
 
 # ==========================
 # JSON prüfen
 # ==========================
 
-neue_daten = json.loads(antwort)
+try:
+    neue_daten = json.loads(antwort)
+except Exception as e:
+    print("Fehler beim Parsen des JSON von der KI. Inhalt war:")
+    print(antwort)
+    raise e
 
 system_prompt = {
     "role": "system",
@@ -112,7 +132,7 @@ try:
     print(f"Vorhandene Einträge: {len(gesamtes_wissen)}")
 
 except Exception as e:
-    print("Datei existiert noch nicht.")
+    print("Datei existiert noch nicht oder Fehler beim Laden.")
     print(e)
 
 # ==========================
@@ -121,9 +141,7 @@ except Exception as e:
 
 gesamtes_wissen.append(konversation)
 
-print(
-    f"Neuer Gesamtbestand: {len(gesamtes_wissen)}"
-)
+print(f"Neuer Gesamtbestand: {len(gesamtes_wissen)}")
 
 # ==========================
 # Temporäre Datei erstellen
