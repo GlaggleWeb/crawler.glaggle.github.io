@@ -46,28 +46,31 @@ themen = [
 
 thema = random.choice(themen)
 
-# WICHTIG: Prompt angepasst -> User nutzt KEINE Emojis, Assistant nutzt SEHR VIELE Emojis
+# WICHTIG: Erwartetes JSON-Format auf ein Objekt geändert, damit Groqs Validator nicht abstürzt.
+# Die Nutzer-Fehler wurden auf ein realistisches Niveau balanciert.
 prompt = f"""
 Du bist ein Daten-Generator für ein neues KI-Modell. Generiere exakt 10 separate, unterschiedliche Chat-Protokolle auf Deutsch zum Thema: "{thema}".
 
 WICHTIGE REGELN FÜR REALISTISCHE NUTZER-EINGABEN:
-1. Der NUTZER ('user') schreibt extrem kurz, unperfekt und faul – genau wie echte Menschen im Chat! Er benutzt Kleinschreibung, Abkürzungen (z.B. 'idk', 'kp', 'vllt', 'safe', 'nd'), umgangssprachliche Wörter ('labern', 'zocken', 'voll kein bock') und manchmal kleine Tippfehler. Keine langen, verschachtelten Sätze beim Nutzer!
+1. Der NUTZER ('user') schreibt kurz, umgangssprachlich und faul – wie echte Menschen im Chat (z.B. Kleinschreibung, ab und zu Wörter wie 'idk', 'kp', 'vllt', 'safe', 'kein bock', 'zocken'). Die Sätze müssen aber grammatikalisch Sinn ergeben und lesbar sein! Keine extremen, unnatürlichen Grammatikfehler.
 2. Der NUTZER ('user') benutzt absolut KEINE Emojis. Seine Nachrichten enthalten nur Text!
-3. Der ASSISTANT ('assistant') antwortet ebenfalls locker, freundlich und im 'Du'-Stil, bleibt aber verständlich und kurz (maximal 2-3 Sätze pro Antwort).
+3. Der ASSISTANT ('assistant') antwortet ebenfalls locker, freundlich und im 'Du'-Stil, bleibt aber verständlich und kurz (maximal 2-5 Sätze pro Antwort).
 4. Der ASSISTANT ('assistant') nutzt VIELE Emojis (😊, 🤔, 🤷‍♂️, 😂) sinnvoll in fast jedem Satz, passend zum lockeren Ton.
 
 AUSGABEFORMAT:
-Gib NUR ein valides JSON-Array aus, das exakt 10 separate Listen enthält. KEINE zusätzlichen Erklärungen drumherum:
-[
-  [
-    {{"role": "user", "content": "hi wie gehts voll langweilig gerade"}},
-    {{"role": "assistant", "content": "Hey! 😊 Oh nein, Langeweile ist fies. Bock auf ne Runde zocken? 🎮"}}
-  ],
-  [
-    {{"role": "user", "content": "morgen voll müde kp warum"}},
-    {{"role": "assistant", "content": "Guten Morgen! ☕ Oh je, das kenne ich. Schnapp dir erst mal einen Kaffee! 😊"}}
+Du MUSST mit einem validen JSON-Objekt antworten, das den Key "chats" enthält. Keine Markdown-Blöcke!
+{{
+  "chats": [
+    [
+      {{"role": "user", "content": "hi wie gehts voll langweilig gerade"}},
+      {{"role": "assistant", "content": "Hey! 😊 Oh nein, Langeweile ist fies. Bock auf ne Runde zocken? 🎮"}}
+    ],
+    [
+      {{"role": "user", "content": "morgen bin voll müde kp warum"}},
+      {{"role": "assistant", "content": "Guten Morgen! ☕ Oh je, das kenne ich. Schnapp dir erst mal einen Kaffee! 😊"}}
+    ]
   ]
-]
+}}
 """
 
 print(f"Generiere 10 Daten-Batches für Thema: {thema}")
@@ -84,7 +87,7 @@ completion = client.chat.completions.create(
     messages=[
         {
             "role": "system",
-            "content": "Du bist ein präziser Batch-Daten-Generator. Du antwortest ausschließlich mit einem verschachtelten JSON-Array, das exakt 10 separate Chat-Listen enthält."
+            "content": "Du bist ein präziser Batch-Daten-Generator. Du antwortest ausschließlich mit einem validen JSON-Objekt, das eine Liste von exakt 10 Chat-Arrays unter dem Key 'chats' enthält."
         },
         {
             "role": "user",
@@ -109,14 +112,17 @@ print("Antwort erhalten.")
 # ==========================
 
 try:
-    neue_daten_batch = json.loads(antwort)
+    daten_objekt = json.loads(antwort)
     
-    # Falls das Modell das Array fälschlicherweise in ein Objekt verpackt hat
-    if isinstance(neue_daten_batch, dict):
-        for key in neue_daten_batch.keys():
-            if isinstance(neue_daten_batch[key], list):
-                neue_daten_batch = neue_daten_batch[key]
-                break
+    # Hier ziehen wir das Array aus dem "chats"-Key heraus, damit dein altes Datenformat exakt gleich bleibt
+    if isinstance(daten_objekt, dict) and "chats" in daten_objekt:
+        neue_daten_batch = daten_objekt["chats"]
+    elif isinstance(daten_objekt, dict):
+        # Fallback, falls der Key anders heißt
+        neue_daten_batch = list(daten_objekt.values())[0]
+    else:
+        neue_daten_batch = daten_objekt
+        
 except Exception as e:
     print("Fehler beim Parsen des JSON von der KI. Inhalt war:")
     print(antwort)
@@ -196,3 +202,13 @@ api.upload_file(
 )
 
 print("wissen.json erfolgreich mit 10 Verläufen aktualisiert!")
+
+
+
+
+
+
+
+
+
+
