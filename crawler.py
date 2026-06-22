@@ -49,7 +49,7 @@ thema = random.choice(themen)
 # WICHTIG: Erwartetes JSON-Format auf ein Objekt geändert, damit Groqs Validator nicht abstürzt.
 # Die Nutzer-Fehler wurden auf ein realistisches Niveau balanciert.
 prompt = f"""
-Du bist ein Daten-Generator für ein neues KI-Modell. Generiere exakt 10 separate, unterschiedliche Chat-Protokolle auf Deutsch zum Thema: "{thema}".
+Du bist ein Daten-Generator für ein neues KI-Modell. Generiere exakt 2 separate, unterschiedliche Chat-Protokolle auf Deutsch zum Thema: "{thema}".
 
 WICHTIGE REGELN FÜR REALISTISCHE NUTZER-EINGABEN:
 1. Der NUTZER ('user') schreibt kurz, umgangssprachlich und faul – wie echte Menschen im Chat (z.B. Kleinschreibung, ab und zu Wörter wie 'idk', 'kp', 'vllt', 'safe', 'kein bock', 'zocken'). Die Sätze müssen aber grammatikalisch Sinn ergeben und lesbar sein! Keine extremen, unnatürlichen Grammatikfehler.
