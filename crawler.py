@@ -70,7 +70,7 @@ print(f"Generiere Daten für Thema: {thema}")
 # ==========================
 
 completion = client.chat.completions.create(
-    model="llama-3.3-70b-versatile",
+    model="openai/gpt-oss-20b",
     temperature=0.7,  # Temperatur leicht gesenkt für weniger "kreativen Quatsch"
     messages=[
         {
