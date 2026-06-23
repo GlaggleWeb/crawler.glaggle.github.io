@@ -63,30 +63,30 @@ for durchlauf in range(1, 6):
     print(f"🔄 Batch {durchlauf}/5 wird generiert...")
 
     prompt = f"""
-Du bist ein präziser Daten-Generator für reines Textmaterial. Generiere exakt 2 separate, unterschiedliche Chat-Protokolle auf Deutsch zum Thema: "{thema}".
-Jeder Chat MUSS exakt 10 Nachrichten lang sein (5x User, 5x Assistant abwechselnd).
+    Du bist ein präziser Daten-Generator für reines Textmaterial. Generiere exakt 2 separate, unterschiedliche Chat-Protokolle auf Deutsch zum Thema: "{thema}".
+    Jeder Chat MUSS exakt 10 Nachrichten lang sein (5x User, 5x Assistant abwechselnd).
 
-REGELN FÜR DIE TEXTE:
-1. NUTZER ('user'): Schreibt kurz, umgangssprachlich, durchgehend klein (z.B. 'idk', 'kp', 'vllt', 'safe', 'zocken'). Absolute Emojis-Sperre!
-2. ASSISTANT ('assistant'): Antwortet locker, freundlich im 'Du'-Stil. Nutzt VIELE Emojis (😊, 🤔, 😂) in jedem Satz. Sätze müssen normales, sauberes Deutsch sein (ca. 2-4 Sätze pro Antwort). Keine fiktiven Links oder Platzhalter (wie 'von X').
+    REGELN FÜR DIE TEXTE:
+    1. NUTZER ('user'): Schreibt kurz, umgangssprachlich, durchgehend klein (z.B. 'idk', 'kp', 'vllt', 'safe', 'zocken'). Absolute Emojis-Sperre!
+    2. ASSISTANT ('assistant'): Antwortet locker, freundlich im 'Du'-Stil. Nutzt VIELE Emojis (😊, 🤔, 😂) in jedem Satz. Sätze müssen normales, sauberes Deutsch sein (ca. 2-4 Sätze pro Antwort). Keine fiktiven Links oder Platzhalter (wie 'von X').
 
-AUSGABEFORMAT:
-Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt mit dem Key "chats". Kein Markdown, kein Text davor oder danach!
-{{
-  "chats": [
-    [
-      {{"role": "user", "content": "hi wie gehts voll langweilig gerade"}},
-      {{"role": "assistant", "content": "Hey! 😊 Oh nein, Langeweile ist fies. 😩 Bock auf ne Runde zocken? 🎮 Ich bin am Start! ✨"}}
-    ],
-    [
-      {{"role": "user", "content": "morgen bin voll müde kp warum"}},
-      {{"role": "assistant", "content": "Guten Morgen! ☕ Oh je, das kenne ich gut. 🥱 Schnapp dir erst mal einen großen Kaffee! 😊 Das hilft immer. ✨"}}
-    ]
-  ]
-}}
-"""
+    AUSGABEFORMAT:
+    Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt mit dem Key "chats". Kein Markdown, kein Text davor oder danach!
+    {{
+      "chats": [
+        [
+          {{"role": "user", "content": "hi wie gehts voll langweilig gerade"}},
+          {{"role": "assistant", "content": "Hey! 😊 Oh nein, Langeweile ist fies. 😩 Bock auf ne Runde zocken? 🎮 Ich bin am Start! ✨"}}
+        ],
+        [
+          {{"role": "user", "content": "morgen bin voll müde kp warum"}},
+          {{"role": "assistant", "content": "Guten Morgen! ☕ Oh je, das kenne ich gut. 🥱 Schnapp dir erst mal einen großen Kaffee! 😊 Das hilft immer. ✨"}}
+        ]
+      ]
+    }}
+    """
 
-try:
+    try:
         completion = client.chat.completions.create(
             model="groq/compound-mini",         # Das neue, neutrale Groq-System
             temperature=0.5,                    # Niedrig für stabiles JSON
