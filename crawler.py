@@ -86,10 +86,10 @@ Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt mit dem Key "chats". Kein
 }}
 """
 
-    try:
+try:
         completion = client.chat.completions.create(
-            model="mixtral-8x7b-32768",       # Ein absolut stabiles, Llama-freies Modell auf Groq
-            temperature=0.5,                  # Niedriger Wert für strikte Einhaltung der JSON-Struktur
+            model="groq/compound-mini",         # Das neue, neutrale Groq-System
+            temperature=0.5,                    # Niedrig für stabiles JSON
             max_tokens=3000,
             response_format={"type": "json_object"},
             messages=[
@@ -110,10 +110,10 @@ Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt mit dem Key "chats". Kein
                 konversation = [system_prompt] + verlauf
                 gesamtes_wissen.append(konversation)
         
-        time.sleep(1)
+        time.sleep(1)  # Kurze Pause für die API
 
     except Exception as e:
-        print(f"⚠️ Fehler in Batch {durchlauf}, wird übersprungen... ({e})")
+        print(f"⚠️ Fehler in diesem Batch, wird übersprungen... ({e})")
         continue
 
 # ==========================
