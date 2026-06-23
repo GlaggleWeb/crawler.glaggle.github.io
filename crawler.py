@@ -2,6 +2,7 @@ import os
 import json
 import random
 import tempfile
+import time
 
 from groq import Groq
 from huggingface_hub import HfApi, hf_hub_download, login
@@ -9,32 +10,23 @@ from huggingface_hub import HfApi, hf_hub_download, login
 # ==========================
 # API-Keys
 # ==========================
-
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-if not GROQ_API_KEY:
-    raise ValueError("GROQ_API_KEY fehlt!")
-
-if not HF_TOKEN:
-    raise ValueError("HF_TOKEN fehlt!")
+if not GROQ_API_KEY or not HF_TOKEN:
+    raise ValueError("GROQ_API_KEY oder HF_TOKEN fehlt!")
 
 login(token=HF_TOKEN)
 
 client = Groq(api_key=GROQ_API_KEY)
 api = HfApi()
 
-# ==========================
-# Hugging Face Repo
-# ==========================
-
 REPO_ID = "GlaggleWeb/glenerationwissen"
 DATEI_NAME = "wissen.json"
 
 # ==========================
-# Themen (Überarbeitet: Reine Grundunterhaltungen)
+# Thema auswählen
 # ==========================
-
 themen = [
     "Klassischer Smalltalk (Wie geht es dir, wie war dein Tag, was machst du gerade?)",
     "Über den Tag philosophieren und alltägliche Gefühle austauschen (Müdigkeit, Motivation, gute Laune)",
@@ -45,162 +37,93 @@ themen = [
 ]
 
 thema = random.choice(themen)
-
-# WICHTIG: Erwartetes JSON-Format auf ein Objekt geändert, damit Groqs Validator nicht abstürzt.
-# Die Nutzer-Fehler wurden auf ein realistisches Niveau balanciert.
-# Ändere die Anweisung im Prompt auf exakt 3 Chats statt 10,
-# damit das JSON-Objekt nicht zu groß für den Groq-Validator wird!
-
-prompt = f"""
-Du bist ein hochpräziser Daten-Generator für ein neues KI-Modell. 
-Generiere exakt 3 separate, völlig unterschiedliche und in sich geschlossene Chat-Protokolle auf Deutsch zum Thema: "{thema}".
-
-Jeder Chat-Verlauf MUSS exakt 10 Nachrichten lang sein (5x User, 5x Assistant abwechselnd).
-
-STRIKTE REGELN FÜR DIE NUTZER-EINGABEN ('user'):
-1. Der NUTZER schreibt kurz, umgangssprachlich, durchgehend klein und extrem schreibfaul (z. B. 'idk', 'kp', 'vllt', 'safe', 'kein bock', 'zocken', 'rumgammeln').
-2. Die Sätze müssen trotz Umgangssprache grammatikalisch einen Sinn ergeben.
-3. Der NUTZER benutzt absolut KEINE Emojis.
-
-STRIKTE REGELN FÜR DEN ASSISTANTEN ('assistant'):
-1. Der ASSISTANT antwortet immer extrem freundlich und im lockeren 'Du'-Stil.
-2. Jede Antwort des Assistanten muss zwischen 2 und 4 Sätze lang sein.
-3. Der ASSISTANT nutzt VIELE passende Emojis (😊, 🤔, 🤷‍♂️, 😂, ✨).
-4. VERBOTEN SIND: Fiktive Links oder Platzhalter (wie "Band X"). Nenne echte Dinge oder bleibe allgemein beschreibend.
-
-AUSGABEFORMAT:
-Du MUSST mit einem validen JSON-Objekt antworten, das den Key "chats" enthält. Keine Markdown-Blöcke!
-
-{{
-  "chats": [
-    [
-      {{"role": "user", "content": "hi wie gehts voll langweilig gerade"}},
-      {{"role": "assistant", "content": "Hey! 😊 Oh nein, Langeweile ist echt fies. 😩 Aber kein Problem, wir machen das Beste draus! ✨ Hast du vielleicht Bock, eine Runde zu zocken? 🎮"}}
-    ]
-  ]
-}}
-"""
-
-print(f"Generiere 10 Daten-Batches für Thema: {thema}")
+print(f"🎬 Starte neutrale Text-Generierung für Thema: {thema}")
 
 # ==========================
-# Groq Anfrage (Optimiert für gpt-oss-20b Batching)
+# Vorhandene Datei laden
 # ==========================
-
-completion = client.chat.completions.create(
-    model="openai/gpt-oss-20b",
-    temperature=0.6,  # Etwas niedriger, damit das Modell strikt beim JSON-Format bleibt
-    max_tokens=4096,   # Erhöht, damit alle 10 Verläufe ohne Abschneiden Platz finden
-    response_format={"type": "json_object"},  # Erzwingt die korrekte JSON-Ausgabe des Modells
-    messages=[
-        {
-            "role": "system",
-            "content": "Du bist ein präziser Batch-Daten-Generator. Du antwortest ausschließlich mit einem validen JSON-Objekt, das eine Liste von exakt 10 Chat-Arrays unter dem Key 'chats' enthält."
-        },
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ]
-)
-
-antwort = completion.choices[0].message.content.strip()
-
-# Falls die KI doch Markdown-Codeblöcke mitsendet, putzen wir sie hier weg
-if antwort.startswith("```"):
-    antwort = antwort.split("\n", 1)[1]
-if antwort.endswith("```"):
-    antwort = antwort.rsplit("\n", 1)[0]
-
-antwort = antwort.strip()
-print("Antwort erhalten.")
-
-# ==========================
-# JSON prüfen und extrahieren
-# ==========================
-
+gesamtes_wissen = []
 try:
-    daten_objekt = json.loads(antwort)
-    
-    # Hier ziehen wir das Array aus dem "chats"-Key heraus, damit dein altes Datenformat exakt gleich bleibt
-    if isinstance(daten_objekt, dict) and "chats" in daten_objekt:
-        neue_daten_batch = daten_objekt["chats"]
-    elif isinstance(daten_objekt, dict):
-        # Fallback, falls der Key anders heißt
-        neue_daten_batch = list(daten_objekt.values())[0]
-    else:
-        neue_daten_batch = daten_objekt
-        
+    datei = hf_hub_download(repo_id=REPO_ID, filename=DATEI_NAME, repo_type="dataset")
+    with open(datei, "r", encoding="utf-8") as f:
+        gesamtes_wissen = json.load(f)
+    print(f"📦 Vorhandene Einträge: {len(gesamtes_wissen)}")
 except Exception as e:
-    print("Fehler beim Parsen des JSON von der KI. Inhalt war:")
-    print(antwort)
-    raise e
+    print("Datei existiert noch nicht oder Fehler beim Laden. Starte neu.")
 
 system_prompt = {
     "role": "system",
     "content": "Du bist Gleneration, eine freundliche KI. ✨"
 }
 
-# Verarbeitet alle 10 Verläufe und fügt jeweils den System-Prompt vorne an
-neue_konversationen = []
-for verlauf in neue_daten_batch:
-    if isinstance(verlauf, list):
-        konversation = [system_prompt] + verlauf
-        neue_konversationen.append(konversation)
+# ==========================
+# Schleife (5 Durchläufe à 2 Chats = 10 Chats gesamt)
+# ==========================
+for durchlauf in range(1, 6):
+    print(f"🔄 Batch {durchlauf}/5 wird generiert...")
+
+    prompt = f"""
+Du bist ein präziser Daten-Generator für reines Textmaterial. Generiere exakt 2 separate, unterschiedliche Chat-Protokolle auf Deutsch zum Thema: "{thema}".
+Jeder Chat MUSS exakt 10 Nachrichten lang sein (5x User, 5x Assistant abwechselnd).
+
+REGELN FÜR DIE TEXTE:
+1. NUTZER ('user'): Schreibt kurz, umgangssprachlich, durchgehend klein (z.B. 'idk', 'kp', 'vllt', 'safe', 'zocken'). Absolute Emojis-Sperre!
+2. ASSISTANT ('assistant'): Antwortet locker, freundlich im 'Du'-Stil. Nutzt VIELE Emojis (😊, 🤔, 😂) in jedem Satz. Sätze müssen normales, sauberes Deutsch sein (ca. 2-4 Sätze pro Antwort). Keine fiktiven Links oder Platzhalter (wie 'von X').
+
+AUSGABEFORMAT:
+Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt mit dem Key "chats". Kein Markdown, kein Text davor oder danach!
+{{
+  "chats": [
+    [
+      {{"role": "user", "content": "hi wie gehts voll langweilig gerade"}},
+      {{"role": "assistant", "content": "Hey! 😊 Oh nein, Langeweile ist fies. 😩 Bock auf ne Runde zocken? 🎮 Ich bin am Start! ✨"}}
+    ],
+    [
+      {{"role": "user", "content": "morgen bin voll müde kp warum"}},
+      {{"role": "assistant", "content": "Guten Morgen! ☕ Oh je, das kenne ich gut. 🥱 Schnapp dir erst mal einen großen Kaffee! 😊 Das hilft immer. ✨"}}
+    ]
+  ]
+}}
+"""
+
+    try:
+        completion = client.chat.completions.create(
+            model="mixtral-8x7b-32768",       # Ein absolut stabiles, Llama-freies Modell auf Groq
+            temperature=0.5,                  # Niedriger Wert für strikte Einhaltung der JSON-Struktur
+            max_tokens=3000,
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Du antwortest ausschließlich mit einem validen JSON-Objekt, das eine Liste von exakt 2 Chat-Arrays unter dem Key 'chats' enthält. Halte dich strikt an die Syntax."
+                },
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        antwort = completion.choices[0].message.content.strip()
+        daten_objekt = json.loads(antwort)
+        neue_daten_batch = daten_objekt.get("chats", [])
+
+        for verlauf in neue_daten_batch:
+            if isinstance(verlauf, list) and len(verlauf) == 10:
+                konversation = [system_prompt] + verlauf
+                gesamtes_wissen.append(konversation)
+        
+        time.sleep(1)
+
+    except Exception as e:
+        print(f"⚠️ Fehler in Batch {durchlauf}, wird übersprungen... ({e})")
+        continue
 
 # ==========================
-# Vorhandene Datei laden
+# Speichern und Upload
 # ==========================
+print(f"💾 Neuer Gesamtbestand: {len(gesamtes_wissen)} Konversationen.")
 
-gesamtes_wissen = []
-
-try:
-    datei = hf_hub_download(
-        repo_id=REPO_ID,
-        filename=DATEI_NAME,
-        repo_type="dataset"
-    )
-
-    with open(datei, "r", encoding="utf-8") as f:
-        gesamtes_wissen = json.load(f)
-
-    print(f"Vorhandene Einträge: {len(gesamtes_wissen)}")
-
-except Exception as e:
-    print("Datei existiert noch nicht oder Fehler beim Laden.")
-    print(e)
-
-# ==========================
-# Neue Daten anhängen (Nutzt .extend() für Listen)
-# ==========================
-
-gesamtes_wissen.extend(neue_konversationen)
-
-print(f"Neuer Gesamtbestand: {len(gesamtes_wissen)}")
-
-# ==========================
-# Temporäre Datei erstellen
-# ==========================
-
-with tempfile.NamedTemporaryFile(
-    mode="w",
-    suffix=".json",
-    delete=False,
-    encoding="utf-8"
-) as temp:
-
-    json.dump(
-        gesamtes_wissen,
-        temp,
-        ensure_ascii=False,
-        indent=2
-    )
-
+with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as temp:
+    json.dump(gesamtes_wissen, temp, ensure_ascii=False, indent=2)
     temp_path = temp.name
-
-# ==========================
-# Upload
-# ==========================
 
 api.upload_file(
     path_or_fileobj=temp_path,
@@ -209,14 +132,6 @@ api.upload_file(
     repo_type="dataset"
 )
 
-print("wissen.json erfolgreich mit 10 Verläufen aktualisiert!")
-
-
-
-
-
-
-
-
-
-
+print("🎉 wissen.json erfolgreich und absolut sauber auf Hugging Face aktualisiert!")
+if os.path.exists(temp_path):
+    os.remove(temp_path)
