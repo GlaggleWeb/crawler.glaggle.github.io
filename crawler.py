@@ -49,28 +49,33 @@ thema = random.choice(themen)
 # WICHTIG: Erwartetes JSON-Format auf ein Objekt geändert, damit Groqs Validator nicht abstürzt.
 # Die Nutzer-Fehler wurden auf ein realistisches Niveau balanciert.
 prompt = f"""
-Du bist ein Daten-Generator für ein neues KI-Modell. Generiere exakt 2 separate, unterschiedliche Chat-Protokolle auf Deutsch zum Thema: "{thema}".
+Du bist ein hochpräziser Daten-Generator für ein neues KI-Modell, das von Grund auf trainiert wird. 
+Generiere exakt 10 separate, völlig unterschiedliche und in sich geschlossene Chat-Protokolle auf Deutsch zum Thema: "{thema}".
 
-WICHTIGE REGELN FÜR REALISTISCHE NUTZER-EINGABEN:
-1. Der NUTZER ('user') schreibt kurz, umgangssprachlich und faul – wie echte Menschen im Chat (z.B. Kleinschreibung, ab und zu Wörter wie 'idk', 'kp', 'vllt', 'safe', 'kein bock', 'zocken'). Die Sätze müssen aber grammatikalisch Sinn ergeben und lesbar sein! Keine extremen, unnatürlichen Grammatikfehler.
-2. Der NUTZER ('user') benutzt absolut KEINE Emojis. Seine Nachrichten enthalten nur Text!
-3. Der ASSISTANT ('assistant') antwortet ebenfalls locker, freundlich und im 'Du'-Stil, bleibt aber verständlich und kurz (ca. 3-8 Sätze pro Antwort).
-4. Der ASSISTANT ('assistant') nutzt VIELE Emojis (😊, 🤔, 🤷‍♂️, 😂) sinnvoll in jedem Satz, passend zum lockeren Ton.
+Jeder Chat-Verlauf MUSS exakt 10 Nachrichten lang sein (5x User, 5x Assistant abwechselnd).
+
+STRIKTE REGELN FÜR DIE NUTZER-EINGABEN ('user'):
+1. Der NUTZER schreibt kurz, umgangssprachlich, durchgehend klein und extrem schreibfaul (z. B. 'idk', 'kp', 'vllt', 'safe', 'kein bock', 'zocken', 'rumgammeln').
+2. Die Sätze müssen trotz Umgangssprache grammatikalisch einen Sinn ergeben. Keine unleserlichen Buchstabensalate.
+3. Der NUTZER benutzt absolut KEINE Emojis.
+
+STRIKTE REGELN FÜR DEN ASSISTANTEN ('assistant'):
+1. Der ASSISTANT antwortet immer extrem freundlich, einfühlsam und im lockeren 'Du'-Stil.
+2. Jede Antwort des Assistanten muss zwischen 3 und 6 Sätze lang sein, um dem Modell genügend echtes Textmaterial zum Lernen zu bieten.
+3. Der ASSISTANT nutzt VIELE passende Emojis (😊, 🤔, 🤷‍♂️, 😂, ✨, ☕) – mindestens eines pro Satz, um den enthusiastischen Ton zu prägen.
+4. VERBOTEN SIND: Fiktive Links (z.B. "hier ein Link"), Platzhalter (z.B. "Band X" oder "Lied Y") oder Verweise auf Dinge, die die KI nicht wissen kann. Wenn Musik oder Filme Thema sind, nenne echte, allgemein bekannte Dinge oder bleibe beschreibend (z. B. "ein paar richtig chillige Lo-Fi Beats zum Entspannen").
 
 AUSGABEFORMAT:
-Du MUSST mit einem validen JSON-Objekt antworten, das den Key "chats" enthält. Keine Markdown-Blöcke!
+Du MUSST mit einem validen JSON-Objekt antworten, das den Key "chats" enthält. Keine Markdown-Blöcke! Die Chats müssen lang genug sein (jeweils 10 Einträge pro Verlauf).
+
 {{
   "chats": [
     [
       {{"role": "user", "content": "hi wie gehts voll langweilig gerade"}},
-      {{"role": "assistant", "content": "Hey! 😊 Oh nein, Langeweile ist fies. Bock auf ne Runde zocken? 🎮"}}
-    ],
-    [
-      {{"role": "user", "content": "morgen bin voll müde kp warum"}},
-      {{"role": "assistant", "content": "Guten Morgen! ☕ Oh je, das kenne ich. Schnapp dir erst mal einen Kaffee! 😊"}}
+      {{"role": "assistant", "content": "Hey! 😊 Oh nein, Langeweile ist echt fies. 😩 Aber kein Problem, wir machen das Beste draus! ✨ Hast du vielleicht Bock, eine Runde zu zocken oder sollen wir über irgendwas Spannendes quatschen? 🎮 Ich bin für jeden Spaß zu haben! Letztes Mal habe ich stundenlang Musik gehört, das hilft auch immer super gegen die Öde. 🎶"}}
     ]
   ]
-}} Das ist nur ein Beispiel die Längen der Chats sollen jeweils 10 solche einträge erhalten(nicht nur 2 wie im Bspl.)
+}}
 """
 
 print(f"Generiere 10 Daten-Batches für Thema: {thema}")
