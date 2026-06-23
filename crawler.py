@@ -89,7 +89,7 @@ print(f"Generiere 10 Daten-Batches für Thema: {thema}")
 
 completion = client.chat.completions.create(
     model="openai/gpt-oss-20b",
-    temperature=0.65,  # Etwas niedriger, damit das Modell strikt beim JSON-Format bleibt
+    temperature=0.6,  # Etwas niedriger, damit das Modell strikt beim JSON-Format bleibt
     max_tokens=4096,   # Erhöht, damit alle 10 Verläufe ohne Abschneiden Platz finden
     response_format={"type": "json_object"},  # Erzwingt die korrekte JSON-Ausgabe des Modells
     messages=[
