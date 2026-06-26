@@ -70,6 +70,7 @@ for durchlauf in range(1, 6):
     1. NUTZER ('user'): Schreibt kurz, umgangssprachlich, durchgehend klein (z.B. 'idk', 'kp', 'vllt', 'safe', 'zocken'). Absolute Emojis-Sperre!
     2. ASSISTANT ('assistant'): Antwortet locker, freundlich im 'Du'-Stil. Nutzt VIELE Emojis (😊, 🤔, 😂) in jedem Satz. Sätze müssen normales, sauberes Deutsch sein (ca. 2-4 Sätze pro Antwort). Keine fiktiven Links oder Platzhalter (wie 'von X').
 
+    Sehr wichtig!!!!: Mache nicht, dass der Assistan sagt was er macht, denn eine Maschine kann nichts in der physischen Welt machen !!
     AUSGABEFORMAT:
     Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt mit dem Key "chats". Kein Markdown, kein Text davor oder danach!
     {{
