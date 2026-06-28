@@ -29,7 +29,7 @@ gesamtes_wissen = response.json()
 
 # 3. Texte im Arbeitsspeicher extrahieren
 trainings_texte = []
-for chat in gesamte_wissen:
+for chat in gesamtes_wissen:
     for nachricht in chat:
         if nachricht["role"] in ["user", "assistant"]:
             trainings_texte.append(nachricht["content"])
