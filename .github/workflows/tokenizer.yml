@@ -1,0 +1,26 @@
+name: Train Tokenizer From RAM
+
+on:
+  workflow_dispatch: # Das erlaubt es dir, das Skript manuell per Knopfdruck zu starten
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Code auschecken
+      uses: actions/checkout@v4
+
+    - name: Python einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-python: '3.10'
+
+    - name: Bibliotheken installieren
+      run: |
+        pip install huggingface_hub tokenizers requests
+
+    - name: Tokenizer Skript ausführen
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }} # Nutzt dein bereits hinterlegtes HF-Secret
+      run: python train_tokenizer.py
