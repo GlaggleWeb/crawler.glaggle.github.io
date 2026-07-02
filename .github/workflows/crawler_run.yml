@@ -3,7 +3,7 @@ name: Gleneration Wissen Crawler
 on:
   schedule:
     # Läuft jetzt exakt alle 2 Stunden und 24 Minuten (10x am Tag)
-    - cron: '0 */2 * * *'
+    - cron: '0 */4 * * *'
   workflow_dispatch: # Erlaubt es dir, den Crawler auch manuell per Klick zu starten
 
 jobs:
