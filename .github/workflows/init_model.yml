@@ -1,0 +1,26 @@
+name: Initialize Empty Model
+
+on:
+  workflow_dispatch: # Erlaubt den manuellen Start per Knopfdruck
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Code auschecken
+      uses: actions/checkout@v4
+
+    - name: Python einrichten
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Bibliotheken installieren
+      run: |
+        pip install huggingface_hub transformers torch safetensors
+
+    - name: Modell initialisieren
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: python init_model.py
