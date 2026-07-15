@@ -111,7 +111,7 @@ for durchlauf in range(1, 6):
                 konversation = [system_prompt] + verlauf
                 gesamtes_wissen.append(konversation)
         
-        time.sleep(1)  # Kurze Pause für die API
+        time.sleep(8)  # Kurze Pause für die API
 
     except Exception as e:
         print(f"⚠️ Fehler in diesem Batch, wird übersprungen... ({e})")
